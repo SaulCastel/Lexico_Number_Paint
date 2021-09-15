@@ -1,0 +1,14 @@
+TITULO="Prueba";
+ANCHO=300;
+ALTO=300; 
+FILAS=12;
+COLUMNAS=12;
+CELDAS = {  
+    [0,0,FALSE,1],
+    [0,1,FALSE,2]
+    };
+COLORES = {
+    [1,#1757bf],
+    [2,#92d466]
+};
+FILTROS = MIRRORX;
