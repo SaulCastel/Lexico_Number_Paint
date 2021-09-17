@@ -4,8 +4,8 @@ ALTO=300;
 FILAS=12;
 COLUMNAS=12;
 CELDAS = {  
-    [0,0,FALSE,1],
-    [0,1,FALSE,2]
+    [0,0,TRUE,1],
+    [1,1,TRUE,2],
     };
 COLORES = {
     [1,#1757bf],

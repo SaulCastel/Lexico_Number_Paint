@@ -1,0 +1,14 @@
+<div class="container">
+    {% for img in imagenes%}
+    <table style="width: {{ancho}}px; height: {{alto}}px;">
+        {% for fila in img.filas %}
+        <tr>
+            {% for celda in img.celdas %}
+            <td style="width: {{AnchoCelda}}px;height: {{AltoCelda}}px;background-color: {{}};">
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+    {% endfor %}
+</div>

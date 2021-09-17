@@ -14,6 +14,19 @@ class Lexico:
         self.flujo = list()
         self.tokens = list()
         self.errores = list()
+        self.imgs = list()
+        self.img = dict()
+        self.contenedor = list()
+        self.subcont = list()
+        self.reserved = [   
+                            'TITULO','ANCHO',
+                            'ALTO','FILAS',
+                            'COLUMNAS','CELDAS',
+                            'COLORES','FILTROS',
+                            'TRUE','FALSE',
+                            'MIRRORX','MIRRORY',
+                            'DOUBLEMIRROR'
+                        ]
 
     def escanear(self,entrada):
         self.str_to_list(entrada)
@@ -23,7 +36,7 @@ class Lexico:
             elif self.getSimbolo():
                 continue
             elif self.getId():
-                token = Token('Id',self.getLexema())
+                token = Token(self.prefijo,self.getLexema())
                 self.addToken(token)
             elif self.getCadena():
                 token = Token('Cadena',self.getLexema())
@@ -39,6 +52,8 @@ class Lexico:
                 self.addToken(token)
             else: #Hay un error léxico
                 self.error()
+        if len(self.errores) == 0:
+            self.imgs.append(self.img)
 
     def str_to_list(self,entrada):
         chars = list()
@@ -66,13 +81,38 @@ class Lexico:
                 else:
                     return False
             elif self.estado == 1:
-                if self.getSeparador():
-                    return True
-                elif self.sigChar().isupper():
+                reservada = self.prefijo
+                if self.sigChar().isupper():
                     self.transicion(1)
+                elif self.getSeparador():
+                    if reservada in self.reserved:    
+                        if reservada == 'TRUE' or reservada == 'FALSE':
+                            self.subcont.append(reservada)
+                        elif reservada == 'MIRRORX' or reservada == 'MIRRORY' or reservada == 'DOUBLEMIRROR':
+                            self.subcont.append(reservada)
+                        elif reservada == 'FILTROS':
+                            self.subcont = list()
+                            self.seccion = reservada
+                        else:
+                            self.seccion = reservada
+                        return True
+                    else:
+                        return False
                 else:
-                    return True
-
+                    if reservada in self.reserved:    
+                        if reservada == 'TRUE' or reservada == 'FALSE':
+                            self.subcont.append(reservada)
+                        elif reservada == 'MIRRORX' or reservada == 'MIRRORY' or reservada == 'DOUBLEMIRROR':
+                            self.subcont.append(reservada)
+                        elif reservada == 'FILTROS':
+                            self.subcont = list()
+                            self.seccion = reservada
+                        else:
+                            self.seccion = reservada
+                        return True
+                    else:
+                        return False
+                
     def getCadena(self) -> bool:
         self.regresar()
         while 1:
@@ -90,6 +130,7 @@ class Lexico:
                 else:
                     return False
             elif self.estado == 2:
+                self.subcont.append(self.prefijo)
                 return True
 
     def getNumero(self) -> bool:
@@ -101,11 +142,13 @@ class Lexico:
                 else:
                     return False
             elif self.estado == 1:
-                if self.getSeparador():
-                    return True
-                elif self.sigChar().isdigit():
+                if self.sigChar().isdigit():
                     self.transicion(1)
+                elif self.getSeparador():
+                    self.subcont.append(self.prefijo)
+                    return True
                 else:
+                    self.subcont.append(self.prefijo)
                     return True
 
     def getHex(self) -> bool:
@@ -126,6 +169,7 @@ class Lexico:
                 else:
                     self.estado = 2
             if self.estado == 2:
+                self.subcont.append(self.prefijo)
                 return True
 
     def getDivisor(self) -> bool:
@@ -136,6 +180,9 @@ class Lexico:
             else:
                 return False
         else:
+            if len(self.errores) == 0:
+                self.imgs.append(self.img)
+                self.img = dict()
             return True
 
     def getSimbolo(self) -> bool:
@@ -149,18 +196,22 @@ class Lexico:
                 elif self.sigChar() == '{':
                     tipo = 'LlaveApertura'
                     self.transicion(1)
+                    self.contenedor = list()
                 elif self.sigChar() == '}':
                     tipo = 'LlaveCierre'
                     self.transicion(1)
                 elif self.sigChar() == "[":
                     tipo = 'CorcheteApertura'
                     self.transicion(1)
+                    self.subcont = list()
                 elif self.sigChar() == "]":
                     tipo = 'CorcheteCierre'
                     self.transicion(1)
+                    self.contenedor.append(self.subcont)
                 elif self.sigChar() == ';':
                     tipo = 'Punto&Coma'
                     self.transicion(1)
+                    self.img[self.seccion] = self.asignarValor() #Añadir llave:valor
                 elif self.sigChar() == ',':
                     tipo = 'Coma'
                     self.transicion(1)
@@ -212,3 +263,29 @@ class Lexico:
         err = Error(self.fila,self.col,caracter)
         self.errores.append(err)
         self.estado = 0
+
+    def asignarValor(self):
+        if len(self.contenedor) == 0:
+            self.contenedor.append(self.subcont)
+        if self.seccion == 'COLORES':
+            colores = dict()
+            for color in self.contenedor:
+                colores[color[0]] = color[1]
+            self.subcont = list()
+            self.contenedor = list()
+            return colores
+        elif self.seccion == 'FILTROS':
+            valor = self.subcont
+            self.subcont = list()
+            self.contenedor = list()
+            return valor
+        elif len(self.contenedor) == 1 and len(self.subcont) == 1:
+            valor = self.subcont.pop()
+            self.subcont = list()
+            self.contenedor = list()
+            return valor
+        else:
+            valor = self.contenedor
+            self.subcont = list()
+            self.contenedor = list()
+            return valor

@@ -1,7 +1,7 @@
 TITULO="Prueba";
 ANCHO=300;
 ALTO=300; 
-FILAS=12:
+FILAS=12;
 COLUMNAS=12;
 CELDAS = {  
     [0,0,FALSE,1],
@@ -21,7 +21,7 @@ COLORES = {
 };
 FILTROS = MIRRORX;
  
-@@@@@
+@@@@
 
 TITULO="Estrella";
 ANCHO=300;

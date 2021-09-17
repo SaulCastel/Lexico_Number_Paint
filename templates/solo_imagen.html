@@ -1,0 +1,11 @@
+<table style="width: {{ancho}}px;height: {{alto}}px;">
+    {% for y in range(filas|int) %}
+        <tr>
+        {% for x in range(cols|int) %}
+            {% set xy = (x|string+y|string)%}
+            <td style="width: {{anchoC}}px;height: {{altoC}}px;background-color: {{celdas.get(xy,'white')}};">
+            </td>
+        {% endfor %}
+        </tr>
+    {% endfor %}
+</table>
