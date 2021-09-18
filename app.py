@@ -51,7 +51,7 @@ def start():
         'celdas':dict_celdas
     }
     saveHtml(titulo,'ORIGINAL',render_template('Imagen.html',**JsonImg))
-    saveImage(titulo,'ORIGINAL',render_template('solo_imagen.html',**JsonImg))
+    saveImage(titulo,'ORIGINAL',render_template('solo_imagen.html',**JsonImg),ancho)
     return Response()
 
 def saveHtml(nombre,filtro,html):
@@ -60,11 +60,15 @@ def saveHtml(nombre,filtro,html):
         f.write(html)
         f.close()
 
-def saveImage(nombre,filtro,html):
+def saveImage(nombre,filtro,html,ancho):
     pathlib.Path(f'imagenes/jpg/{nombre}').mkdir(parents=True,exist_ok=True)
     output = f'imagenes/jpg/{nombre}/{filtro}.jpg'
     css = 'static/imagen.css'
-    imgkit.from_string(html,output_path=output,css=css)
+    options = {
+        'disable-smart-width':'',
+        'width': int(ancho) + 20
+    }
+    imgkit.from_string(html,output_path=output,options=options,css=css)
 
 def aplicarFiltro(filtro):
     pass

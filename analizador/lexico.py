@@ -72,8 +72,8 @@ class Lexico:
         self.conteo = 0
         return lexema
 
-    def getId(self) -> bool:
-        self.regresar()
+    def getId(self) -> bool: # regex: [A-Z]+
+        self.regresar() # Obtener los caracteres previamente analizados por otro automata
         while 1:
             if self.estado == 0:
                 if self.sigChar().isupper():
@@ -211,6 +211,7 @@ class Lexico:
                 elif self.sigChar() == ';':
                     tipo = 'Punto&Coma'
                     self.transicion(1)
+                    # dict['clave'] = valor
                     self.img[self.seccion] = self.asignarValor() #Añadir llave:valor
                 elif self.sigChar() == ',':
                     tipo = 'Coma'

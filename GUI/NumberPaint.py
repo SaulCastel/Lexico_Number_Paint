@@ -1,3 +1,4 @@
+import os
 import requests
 import PIL.ImageTk
 import PIL.Image
@@ -10,7 +11,7 @@ import json
 class GUI:
 
     def __init__(self,raiz:Tk) -> None:
-
+        self.raiz = raiz
         mainframe = ttk.Frame(raiz)
 
         #Barra
@@ -19,7 +20,7 @@ class GUI:
         cargar = ttk.Button(barra,text='Cargar',command=self.cargar_archivo)
         analizar = ttk.Button(barra,text='Analizar',command=self.readfile)
         reportes = ttk.Button(barra,text='Reportes')
-        salir = ttk.Button(barra,text='Salir')
+        salir = ttk.Button(barra,text='Salir',command=self.salir)
 
         #Container
         container = ttk.Frame(mainframe, borderwidth=5, relief="ridge")
@@ -31,6 +32,12 @@ class GUI:
         mirrorx = ttk.Button(sidebar,text='Mirror X')
         mirrory = ttk.Button(sidebar,text='Mirror Y')
         DMirror = ttk.Button(sidebar,text='D. Mirror')
+        
+        #Lista Imagenes
+        self.values = list()
+        self.listValues = StringVar() #Sirve como intermediario
+        self.imgList = Listbox(sidebar,listvariable=self.listValues)
+        self.imgList.bind('<<ListboxSelect>>',self.imgSelected)
 
         #Panel
         panel = ttk.Frame(container, borderwidth=5, relief="ridge")
@@ -45,10 +52,11 @@ class GUI:
         salir.grid(row=1,column=4,sticky=EW)
         container.grid(row=2,column=1,sticky=NSEW)
         sidebar.grid(row=1,column=1,sticky=NS)
-        original.grid(row=1,column=1)
-        mirrorx.grid(row=2,column=1)
-        mirrory.grid(row=3,column=1)
-        DMirror.grid(row=4,column=1)
+        original.grid(row=1,column=1,sticky=EW)
+        mirrorx.grid(row=2,column=1,sticky=EW)
+        mirrory.grid(row=3,column=1,sticky=EW)
+        DMirror.grid(row=4,column=1,sticky=EW)
+        self.imgList.grid(row=5,column=1,sticky=NSEW)
         panel.grid(row=1,column=2,sticky=NSEW)
         self.imagen.grid(row=0,column=0)
 
@@ -62,9 +70,19 @@ class GUI:
         barra.columnconfigure(4,weight=1)
         container.rowconfigure(1,weight=1)
         container.columnconfigure(2,weight=1)
-
+        sidebar.rowconfigure(5,weight=1)    
+    
+    def imgSelected(self,*args):
+        try:
+            indexList = self.imgList.curselection()
+            img = self.values[indexList[0]]
+            route = f'imagenes/jpg/{img}/ORIGINAL.jpg'
+            self.setImage(route)
+        except IndexError:
+            pass       
+    
     def setImage(self,route):
-        self.img = PIL.ImageTk.PhotoImage(PIL.Image.open(route).resize((400,400)))
+        self.img = PIL.ImageTk.PhotoImage(PIL.Image.open(route).resize((800,500)))
         self.imagen['image'] = self.img
     
     def cargar_archivo(self,*args):
@@ -84,10 +102,13 @@ class GUI:
             self.lex = lexico.Lexico()
             self.lex.escanear(entrada)
             if len(self.lex.errores) == 0:
+                self.values = list()
                 for img in self.lex.imgs:
-                    #print(json.dumps(img,indent=4))
+                    print(json.dumps(img,indent=4))
                     self.sendImage(img)
                     print(f'>> Imagen: {img["TITULO"]} renderizada en HTML')
+                    self.values.append(img['TITULO'].replace('"',''))
+                self.gatherImages()
             else:
                 print('\t---ERRORES---')
                 for e in self.lex.errores:
@@ -98,10 +119,17 @@ class GUI:
 
     def sendImage(self,img):
         r = requests.post('http://127.0.0.1:5000/postImage',json=img)
-        print(r.content)
+        print('> Server devolvio: ',r.status_code)
+
+    def gatherImages(self):
+        self.listValues.set(self.values)
+        print('> Lista de imagenes actualizada')
 
     def sendTokens(self):
         requests.post('http://127.0.0.1:5000/postTokens',data=self.lex.tokens)
 
     def sendErrores(self):
         requests.post('http://127.0.0.1:5000/postErrores',data=self.lex.errores)
+
+    def salir(self,*args):
+        self.raiz.destroy()

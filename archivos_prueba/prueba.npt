@@ -1,4 +1,10 @@
-TITULO="Prueba";
+
+
+
+
+
+
+TITULOS="Prueba";
 ANCHO=300;
 ALTO=300; 
 FILAS=12;
